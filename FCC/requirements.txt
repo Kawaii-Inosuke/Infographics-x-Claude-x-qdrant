@@ -1,0 +1,4 @@
+qdrant-client
+google-generativeai
+python-dotenv
+Pillow
