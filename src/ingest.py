@@ -105,11 +105,15 @@ def ensure_collection(client: QdrantClient, collection_name: str) -> None:
         try:
             info = client.get_collection(collection_name=collection_name)
             existing_size = None
-            vectors = getattr(info.config.params, "vectors", None)
+            params = getattr(info.config, "params", None) if info.config else None
+            vectors = getattr(params, "vectors", None) if params else None
+            
             if isinstance(vectors, qdrant_models.VectorParams):
                 existing_size = vectors.size
-            elif hasattr(vectors, "default") and isinstance(vectors.default, qdrant_models.VectorParams):
-                existing_size = vectors.default.size
+            elif vectors is not None and hasattr(vectors, "default"):
+                default_vector = getattr(vectors, "default", None)
+                if isinstance(default_vector, qdrant_models.VectorParams):
+                    existing_size = default_vector.size
 
             if existing_size is not None and existing_size != EMBEDDING_DIM:
                 cnt = client.count(collection_name=collection_name, exact=True)
@@ -260,9 +264,9 @@ def main() -> int:
         return 0
 
     total = len(images)
-    ok = 0
-    skipped = 0
-    failed = 0
+    ok: int = 0
+    skipped: int = 0
+    failed: int = 0
 
     for idx, path in enumerate(images, start=1):
         filename = path.name

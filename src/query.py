@@ -112,7 +112,7 @@ def main() -> int:
     for i, hit in enumerate(hits, start=1):
         payload = hit.payload or {}
         filename = payload.get("filename", "<unknown>")
-        desc = (payload.get("description", "") or "").strip().replace("\n", " ")
+        desc: str = (payload.get("description", "") or "").strip().replace("\n", " ")
         if len(desc) > 220:
             desc = desc[:220] + "…"
         score = getattr(hit, "score", None)
