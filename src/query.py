@@ -7,6 +7,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qdrant_models
+from typing import Any, cast, Dict, List, Optional
 
 
 EMBEDDING_MODEL = "models/gemini-embedding-001"
@@ -110,9 +111,14 @@ def main() -> int:
     print(f"[info] results: {len(hits)}\n")
 
     for i, hit in enumerate(hits, start=1):
-        payload = hit.payload or {}
+        payload: Dict[str, Any] = cast(Dict[str, Any], hit.payload or {})
         filename = payload.get("filename", "<unknown>")
-        desc: str = (payload.get("description", "") or "").strip().replace("\n", " ")
+        
+        raw_desc = payload.get("description", "")
+        if not isinstance(raw_desc, str):
+            raw_desc = ""
+        desc: str = raw_desc.strip().replace("\n", " ")
+        
         if len(desc) > 220:
             desc = desc[:220] + "…"
         score = getattr(hit, "score", None)

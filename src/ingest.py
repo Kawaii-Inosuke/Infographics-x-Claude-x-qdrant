@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from PIL import Image
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qdrant_models
+from typing import Any, cast, Dict, List, Optional
 
 
 SUPPORTED_EXTS = {".jpg", ".jpeg", ".png"}
@@ -109,11 +110,14 @@ def ensure_collection(client: QdrantClient, collection_name: str) -> None:
             vectors = getattr(params, "vectors", None) if params else None
             
             if isinstance(vectors, qdrant_models.VectorParams):
-                existing_size = vectors.size
+                # Using cast to satisfy linters that don't recognize isinstance as a type guard
+                v_params: qdrant_models.VectorParams = cast(qdrant_models.VectorParams, vectors)
+                existing_size = v_params.size
             elif vectors is not None and hasattr(vectors, "default"):
                 default_vector = getattr(vectors, "default", None)
                 if isinstance(default_vector, qdrant_models.VectorParams):
-                    existing_size = default_vector.size
+                    v_params_default: qdrant_models.VectorParams = cast(qdrant_models.VectorParams, default_vector)
+                    existing_size = v_params_default.size
 
             if existing_size is not None and existing_size != EMBEDDING_DIM:
                 cnt = client.count(collection_name=collection_name, exact=True)
